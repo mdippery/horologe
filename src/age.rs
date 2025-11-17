@@ -62,15 +62,6 @@ mod tests {
     use super::*;
     use crate::testing::FrozenClock;
 
-    impl Default for FrozenClock {
-        fn default() -> Self {
-            let datetime = DateTime::parse_from_rfc3339("2025-05-23T10:13:00-07:00")
-                .expect("invalid date supplied")
-                .with_timezone(&Utc);
-            Self::new(datetime)
-        }
-    }
-
     #[derive(Debug)]
     struct ThingWithAge {
         created_utc: DateTime<Utc>,
