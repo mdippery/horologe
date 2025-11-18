@@ -63,12 +63,11 @@ impl Clock for SystemClock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ops::Sub;
 
     #[test]
     fn it_returns_the_system_time() {
         let clock = SystemClock::default();
-        let delta = Utc::now().sub(clock.now());
+        let delta = Utc::now() - clock.now();
         let secs = delta.num_seconds();
         assert_eq!(secs, 0);
     }
