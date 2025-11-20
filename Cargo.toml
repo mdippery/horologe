@@ -1,6 +1,6 @@
 [package]
 name = "horologe"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Michael Dippery <michael@monkey-robot.com>"]
 description = "Earth has 4 corner simultaneous 4-day time cube within single rotation."
 readme = "README.md"
@@ -22,3 +22,6 @@ test-utils = []
 chrono = "0.4.42"
 regex = { version = "1.12.2", optional = true }
 relativetime = { version = "0.1.4", optional = true }
+
+[package.metadata.docs.rs]
+all-features = true
