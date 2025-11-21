@@ -2,7 +2,7 @@
 name = "horologe"
 version = "1.0.1"
 authors = ["Michael Dippery <michael@monkey-robot.com>"]
-description = "Earth has 4 corner simultaneous 4-day time cube within single rotation."
+description = "Earth has 4 corner simultaneous 4-day time cube within single rotation"
 readme = "README.md"
 documentation = "https://docs.rs/horologe"
 repository = "https://github.com/mdippery/horologe"
