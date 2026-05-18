@@ -10,6 +10,11 @@ pub mod age;
 pub mod testing;
 
 pub use chrono::{DateTime, Local, TimeDelta, Utc};
+use std::result;
+use thiserror::Error;
+
+#[cfg(feature = "test-utils")]
+use chrono::ParseError;
 
 #[cfg(doc)]
 #[cfg(feature = "test-utils")]
@@ -33,6 +38,17 @@ impl Clock for SystemClock {
         Utc::now()
     }
 }
+
+/// Encapsulates all errors thrown by the library.
+#[derive(Debug, Error)]
+pub enum Error {
+    #[cfg(feature = "test-utils")]
+    #[error("could not parse datetime string")]
+    ParseError(#[from] ParseError),
+}
+
+/// Encapsulates all operations that might return an error.
+pub type Result<T> = result::Result<T, Error>;
 
 #[cfg(test)]
 mod tests {

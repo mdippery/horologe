@@ -3,8 +3,10 @@
 
 //! Utilities for tests involving time.
 
-use crate::{Clock, DateTime, Utc};
-use chrono::ParseResult;
+use crate::{Clock, DateTime, Result, Utc};
+
+#[cfg(doc)]
+use chrono::ParseError;
 
 /// A clock that always returns the same time.
 ///
@@ -38,8 +40,9 @@ impl FrozenClock {
     /// Creates a new frozen clock that always returns the given `datetime`
     /// as "now".
     ///
-    /// Returns a chrono [`ParseResult`] if `datetime` cannot be parsed.
-    pub fn with_string(datetime: impl AsRef<str>) -> ParseResult<Self> {
+    /// Returns a [`Result`] wrapping a chrono [`ParseError`] if `datetime`
+    /// cannot be parsed.
+    pub fn with_string(datetime: impl AsRef<str>) -> Result<Self> {
         let datetime = DateTime::parse_from_rfc3339(datetime.as_ref())?.with_timezone(&Utc);
         Ok(Self::new(datetime))
     }
@@ -64,11 +67,11 @@ impl Default for FrozenClock {
 #[cfg(test)]
 mod tests {
     use super::FrozenClock;
-    use crate::{Clock, SystemClock};
-    use chrono::{Datelike, ParseResult, Timelike};
+    use crate::{Clock, Result, SystemClock};
+    use chrono::{Datelike, Timelike};
 
     #[test]
-    fn it_parses_a_datetime_string() -> ParseResult<()> {
+    fn it_parses_a_datetime_string() -> Result<()> {
         let s = "2025-12-25T12:01:02-08:00";
         let dt = FrozenClock::with_string(s)?.now();
         assert_eq!(dt.month(), 12);

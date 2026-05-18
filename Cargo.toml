@@ -22,6 +22,7 @@ test-utils = []
 chrono = "0.4.42"
 regex = { version = "1.12.2", optional = true }
 relativetime = { version = "0.1.4", optional = true }
+thiserror = "2.0.18"
 
 [package.metadata.docs.rs]
 all-features = true
