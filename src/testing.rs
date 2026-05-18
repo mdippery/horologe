@@ -3,7 +3,7 @@
 
 //! Utilities for tests involving time.
 
-use crate::{Clock, DateTime, Result, Utc};
+use crate::{Clock, DateTime, Error, Utc};
 
 #[cfg(doc)]
 use chrono::ParseError;
@@ -15,6 +15,7 @@ use chrono::ParseError;
 /// time specified in [`FrozenClock::default_datetime`]. This clock's notion
 /// of "now" (as returned by [`FrozenClock::now()`]) is always the same and
 /// always in the past.
+#[derive(Debug)]
 pub struct FrozenClock {
     datetime: DateTime<Utc>,
 }
@@ -36,14 +37,31 @@ impl FrozenClock {
     pub fn new(datetime: DateTime<Utc>) -> Self {
         FrozenClock { datetime }
     }
+}
+
+impl TryFrom<String> for FrozenClock {
+    type Error = Error;
 
     /// Creates a new frozen clock that always returns the given `datetime`
     /// as "now".
     ///
-    /// Returns a [`Result`] wrapping a chrono [`ParseError`] if `datetime`
+    /// Returns a `Result` wrapping a chrono [`ParseError`] if `datetime`
     /// cannot be parsed.
-    pub fn with_string(datetime: impl AsRef<str>) -> Result<Self> {
-        let datetime = DateTime::parse_from_rfc3339(datetime.as_ref())?.with_timezone(&Utc);
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_from(value.as_str())
+    }
+}
+
+impl TryFrom<&str> for FrozenClock {
+    type Error = Error;
+
+    /// Creates a new frozen clock that always returns the given `datetime`
+    /// as "now".
+    ///
+    /// Returns a `Result` wrapping a chrono [`ParseError`] if `datetime`
+    /// cannot be parsed.
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let datetime = DateTime::parse_from_rfc3339(value)?.with_timezone(&Utc);
         Ok(Self::new(datetime))
     }
 }
@@ -67,13 +85,13 @@ impl Default for FrozenClock {
 #[cfg(test)]
 mod tests {
     use super::FrozenClock;
-    use crate::{Clock, Result, SystemClock};
+    use crate::{Clock, Error, SystemClock};
     use chrono::{Datelike, Timelike};
 
     #[test]
-    fn it_parses_a_datetime_string() -> Result<()> {
+    fn it_parses_a_datetime_string() -> Result<(), Error> {
         let s = "2025-12-25T12:01:02-08:00";
-        let dt = FrozenClock::with_string(s)?.now();
+        let dt = FrozenClock::try_from(String::from(s))?.now();
         assert_eq!(dt.month(), 12);
         assert_eq!(dt.day(), 25);
         assert_eq!(dt.year(), 2025);
@@ -84,10 +102,22 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    fn it_parses_a_datetime_str() -> Result<(), Error> {
+        let s = "2025-12-25T12:01:02-08:00";
+        let dt = FrozenClock::try_from(s)?.now();
+        assert_eq!(dt.month(), 12);
+        assert_eq!(dt.day(), 25);
+        assert_eq!(dt.year(), 2025);
+        assert_eq!(dt.hour(), 20);
+        assert_eq!(dt.minute(), 1);
+        assert_eq!(dt.second(), 2);
+        Ok(())
+    }
+
+    #[test]
     fn it_returns_an_error_if_there_is_an_invalid_string() {
         let s = "2025-12-32T12:01:02-08:00";
-        let c = FrozenClock::with_string(s);
+        let c = FrozenClock::try_from(s);
         assert!(c.is_err());
     }
 
