@@ -4,6 +4,7 @@
 //! Utilities for tests involving time.
 
 use crate::{Clock, DateTime, Utc};
+use chrono::ParseResult;
 
 /// A clock that always returns the same time.
 ///
@@ -37,15 +38,10 @@ impl FrozenClock {
     /// Creates a new frozen clock that always returns the given `datetime`
     /// as "now".
     ///
-    /// # Panics
-    ///
-    /// If `datetime` is not a valid time string.
-    pub fn with_string(datetime: impl AsRef<str>) -> Self {
-        let datetime = DateTime::parse_from_rfc3339(datetime.as_ref())
-            // TODO: Probably should have better error handling, I dunno
-            .expect("invalid date supplied")
-            .with_timezone(&Utc);
-        Self::new(datetime)
+    /// Returns a chrono [`ParseResult`] if `datetime` cannot be parsed.
+    pub fn with_string(datetime: impl AsRef<str>) -> ParseResult<Self> {
+        let datetime = DateTime::parse_from_rfc3339(datetime.as_ref())?.with_timezone(&Utc);
+        Ok(Self::new(datetime))
     }
 }
 
@@ -67,27 +63,29 @@ impl Default for FrozenClock {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Clock, SystemClock};
     use super::FrozenClock;
-    use chrono::{Datelike, Timelike};
+    use crate::{Clock, SystemClock};
+    use chrono::{Datelike, ParseResult, Timelike};
 
     #[test]
-    fn it_parses_a_datetime_string() {
+    fn it_parses_a_datetime_string() -> ParseResult<()> {
         let s = "2025-12-25T12:01:02-08:00";
-        let dt = FrozenClock::with_string(s).now();
+        let dt = FrozenClock::with_string(s)?.now();
         assert_eq!(dt.month(), 12);
         assert_eq!(dt.day(), 25);
         assert_eq!(dt.year(), 2025);
         assert_eq!(dt.hour(), 20);
         assert_eq!(dt.minute(), 1);
         assert_eq!(dt.second(), 2);
+        Ok(())
     }
 
     #[test]
     #[should_panic]
-    fn it_panics_if_there_is_an_invalid_string() {
+    fn it_returns_an_error_if_there_is_an_invalid_string() {
         let s = "2025-12-32T12:01:02-08:00";
-        let _ = FrozenClock::with_string(s).now();
+        let c = FrozenClock::with_string(s);
+        assert!(c.is_err());
     }
 
     #[test]
