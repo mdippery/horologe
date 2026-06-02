@@ -14,14 +14,14 @@ clocks for testing.
 ## Features
 
 - **age** -
-Includes `horologe::age`, which defines a trait for determining
-the age of a thing.
+  Includes `horologe::age`, which defines a trait for determining
+  the age of a thing.
 
 - **relative-age** -
-Includes features in `horologe::age` that return a string describing
-the relative age of a thing, such as "1 year ago".
+  Includes features in `horologe::age` that return a string describing
+  the relative age of a thing, such as "1 year ago".
 
 - **test-utils** -
-Includes data structures useful for testing, such as a `FrozenClock`
-that always returns the same time (you probably want to enable this
-feature and it has no dependencies but that's up to you).
+  Includes data structures useful for testing, such as a `FrozenClock`
+  that always returns the same time (you probably want to enable this
+  feature and it has no dependencies but that's up to you).
