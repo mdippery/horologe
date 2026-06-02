@@ -72,8 +72,6 @@ impl Clock for FrozenClock {
     }
 }
 
-// TODO: Maybe a macro for implementing Default with a static string would be cool.
-
 impl Default for FrozenClock {
     /// Always returns a datetime specified by [`FrozenClock::default_datetime`]
     /// for "now".
