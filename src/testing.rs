@@ -10,11 +10,11 @@ use chrono::ParseError;
 
 /// A clock that always returns the same time.
 ///
-/// This is useful for "freezing time" in unit tests. In your tests, call
-/// [`FrozenClock::default()`] to create a clock that always returns the
-/// time specified in [`FrozenClock::default_datetime`]. This clock's notion
-/// of "now" (as returned by [`FrozenClock::now()`]) is always the same and
-/// always in the past.
+/// This is useful for "freezing time" in unit tests. In your tests, you can
+/// use the [`freeze_time`](crate::freeze_time) macro to implement [`Default`]
+/// for `FrozenClock` using your preferred datetime string, then call
+/// `FrozenClock::default()` to create a clock that always returns the same
+/// time when calling [`FrozenClock::now()`].
 #[derive(Debug)]
 pub struct FrozenClock {
     datetime: DateTime<Utc>,
@@ -23,7 +23,23 @@ pub struct FrozenClock {
 impl FrozenClock {
     const DEFAULT_DATETIME: &'static str = "2025-05-23T10:13:00-07:00";
 
-    /// The default datetime, used when constructing default frozen clocks.
+    /// The default datetime, useful when constructing default frozen clocks.
+    ///
+    /// You can easily implement [`Default`] using this method:
+    ///
+    /// ```compile_fail
+    /// use horologe::Clock;
+    /// use horologe::testing::FrozenClock;
+    ///
+    /// impl Default for FrozenClock {
+    ///     fn default() -> Self {
+    ///         Self::new(Self::default_datetime())
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Though it might be easier to implement `Default` by passing a
+    /// datetime string to the [`freeze_time`](crate::freeze_time).
     ///
     /// This date is guaranteed to always be in the past.
     pub fn default_datetime() -> DateTime<Utc> {
@@ -72,12 +88,25 @@ impl Clock for FrozenClock {
     }
 }
 
-impl Default for FrozenClock {
-    /// Always returns a datetime specified by [`FrozenClock::default_datetime`]
-    /// for "now".
-    fn default() -> Self {
-        Self::new(Self::default_datetime())
-    }
+/// Implement [`Default`] for [`FrozenClock`] using the given datetime string.
+///
+/// Call the macro with a string (or an expression that returns a string)
+/// to implement a `Default` for `FrozenClock` that returns the date
+/// represented by the string in [`FrozenClock::now()`]:
+///
+/// ```
+/// use horologe::freeze_time;
+/// freeze_time!("2025-05-23T10:13:00-07:00");
+/// ```
+#[macro_export]
+macro_rules! freeze_time {
+    ($datetime:expr) => {
+        impl Default for $crate::testing::FrozenClock {
+            fn default() -> Self {
+                Self::try_from($datetime).unwrap_or_else(|_| Self::new(Self::default_datetime()))
+            }
+        }
+    };
 }
 
 #[cfg(test)]
@@ -85,6 +114,8 @@ mod tests {
     use super::FrozenClock;
     use crate::{Clock, Error, SystemClock};
     use chrono::{Datelike, Timelike};
+
+    freeze_time!(FrozenClock::DEFAULT_DATETIME);
 
     #[test]
     fn it_parses_a_datetime_string() -> Result<(), Error> {
